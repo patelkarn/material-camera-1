@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (view.getId() == R.id.launchCameraStillshot)
             materialCamera
+                    .qualityPicture(3)
                     .stillShot() // launches the Camera in stillshot mode
                     .labelConfirm(R.string.mcam_use_stillshot);
         materialCamera.start(CAMERA_RQ);

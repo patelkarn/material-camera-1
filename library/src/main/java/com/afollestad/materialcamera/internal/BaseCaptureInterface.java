@@ -76,6 +76,8 @@ public interface BaseCaptureInterface {
 
     int qualityProfile();
 
+    int qualityPicture();
+
     @DrawableRes
     int iconRecord();
 

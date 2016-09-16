@@ -39,6 +39,11 @@ public class MaterialCamera {
     public static final int QUALITY_720P = CamcorderProfile.QUALITY_720P;
     public static final int QUALITY_1080P = CamcorderProfile.QUALITY_1080P;
 
+    public static final int LOW_QUALITY = 0;
+    public static final int MEDIUM_QUALITY = 1;
+    public static final int HIGH_QUALITY = 2;
+    public static final int FULL_QUALITY = 3;
+
     public static final String ERROR_EXTRA = "mcam_error";
     public static final String STATUS_EXTRA = "mcam_status";
 
@@ -68,6 +73,7 @@ public class MaterialCamera {
     private float mVideoPreferredAspect = -1f;
     private long mMaxFileSize = -1;
     private int mQualityProfile = -1;
+    private int mQualityPicture = -1;
 
     private int mIconRecord;
     private int mIconStop;
@@ -79,6 +85,8 @@ public class MaterialCamera {
 
     private int mLabelRetry;
     private int mLabelConfirm;
+
+    private String cameraClassName = "";
 
     public MaterialCamera(@NonNull Activity context) {
         mContext = context;
@@ -166,6 +174,10 @@ public class MaterialCamera {
         return this;
     }
 
+    public String getCameraClassName(){
+        return cameraClassName;
+    }
+
     /**
      * @param rate
      * @return
@@ -208,6 +220,11 @@ public class MaterialCamera {
 
     public MaterialCamera qualityProfile(@QualityProfile int profile) {
         mQualityProfile = profile;
+        return this;
+    }
+
+    public MaterialCamera qualityPicture(int mQualityPicture) {
+        this.mQualityPicture = mQualityPicture;
         return this;
     }
 
@@ -281,6 +298,9 @@ public class MaterialCamera {
     public Intent getIntent() {
         final Class<?> cls = !mForceCamera1 && CameraUtil.hasCamera2(mContext, mStillShot) ?
                 CaptureActivity2.class : CaptureActivity.class;
+
+        cameraClassName = cls.getName().toUpperCase();
+
         Intent intent = new Intent(mContext, cls)
                 .putExtra(CameraIntentKey.LENGTH_LIMIT, mLengthLimit)
                 .putExtra(CameraIntentKey.ALLOW_RETRY, mAllowRetry)
@@ -328,6 +348,8 @@ public class MaterialCamera {
             intent.putExtra(CameraIntentKey.LABEL_RETRY, mLabelRetry);
         if (mLabelConfirm != 0)
             intent.putExtra(CameraIntentKey.LABEL_CONFIRM, mLabelConfirm);
+        if (mQualityPicture > -1)
+            intent.putExtra(CameraIntentKey.QUALITY_PICTURE, mQualityPicture);
 
         return intent;
     }

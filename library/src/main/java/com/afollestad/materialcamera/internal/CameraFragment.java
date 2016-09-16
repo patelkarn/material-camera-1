@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.afollestad.materialcamera.ICallback;
+import com.afollestad.materialcamera.MaterialCamera;
 import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.util.CameraUtil;
 import com.afollestad.materialcamera.util.Degrees;
@@ -204,9 +205,20 @@ public class CameraFragment extends BaseCameraFragment implements View.OnClickLi
             if (videoSizes == null || videoSizes.size() == 0)
                 videoSizes = parameters.getSupportedPreviewSizes();
             mVideoSize = chooseVideoSize((BaseCaptureActivity) activity, videoSizes);
-            Camera.Size previewSize = chooseOptimalSize(parameters.getSupportedPreviewSizes(),
-                    mWindowSize.x, mWindowSize.y, mVideoSize);
 
+            Camera.Size largest = getHighestSupportedStillShotSize(parameters.getSupportedPictureSizes());
+            Camera.Size stillImageSize = optimalPictureSize((BaseCaptureActivity) activity, largest.width,
+                    largest.height, parameters.getSupportedPictureSizes());
+            Camera.Size stillImagePreviewSize = optimalPictureSize((BaseCaptureActivity) activity, videoSizes.get(0).width,
+                    videoSizes.get(0).height, videoSizes);
+            Camera.Size previewSize;
+            if(mInterface.useStillshot()){
+                previewSize = chooseOptimalSize(parameters.getSupportedPreviewSizes(),
+                        mWindowSize.x, mWindowSize.y, stillImagePreviewSize);
+            } else {
+                previewSize = chooseOptimalSize(parameters.getSupportedPreviewSizes(),
+                        mWindowSize.x, mWindowSize.y, mVideoSize);
+            }
 
             if (ManufacturerUtil.isSamsungGalaxyS3()) {
                 parameters.setPreviewSize(ManufacturerUtil.SAMSUNG_S3_PREVIEW_WIDTH,
@@ -221,8 +233,7 @@ public class CameraFragment extends BaseCameraFragment implements View.OnClickLi
             mFlashModes = CameraUtil.getSupportedFlashModes(this.getActivity(), parameters);
             mInterface.setFlashModes(mFlashModes);
 
-            Camera.Size mStillShotSize = getHighestSupportedStillShotSize(parameters.getSupportedPictureSizes());
-            parameters.setPictureSize(mStillShotSize.width, mStillShotSize.height);
+            parameters.setPictureSize(stillImageSize.width, stillImageSize.height);
 
             setCameraDisplayOrientation(parameters);
             mCamera.setParameters(parameters);
@@ -233,6 +244,49 @@ public class CameraFragment extends BaseCameraFragment implements View.OnClickLi
         } catch (RuntimeException e2) {
             throwError(new Exception("Cannot access the camera, you may need to restart your device.", e2));
         }
+    }
+
+    private static Camera.Size optimalPictureSize(BaseCaptureInterface ci, int width, int height, List<Camera.Size> choices) {
+        int pictureQuality = -1;
+        switch (ci.qualityPicture())
+        {
+            case MaterialCamera.FULL_QUALITY:
+                pictureQuality = 0;
+                break;
+            case MaterialCamera.HIGH_QUALITY:
+                pictureQuality = 1;
+                height = (int) (height * .75);
+                width = (int) (width * .75);
+                break;
+            case MaterialCamera.MEDIUM_QUALITY:
+                pictureQuality = 2;
+                height = (int) (height * .50);
+                width = (int) (width * .50);
+                break;
+            case MaterialCamera.LOW_QUALITY:
+                pictureQuality = 3;
+                height = (int) (height * .25);
+                width = (int) (width * .25);
+                break;
+        }
+        if(choices.size() <= 7 || pictureQuality == 0){
+            return choices.get(pictureQuality);
+        } else if(choices.size() <= 10){
+            return choices.get(pictureQuality * 2);
+        }
+
+        Camera.Size backupSize = null;
+        for (int count = 0; count < choices.size(); count++) {
+            if (choices.get(count).height <= height) {
+                if(backupSize == null) backupSize = choices.get(count - 1);
+                if(choices.get(count).width <= width){
+                    return choices.get(count);
+                }
+            }
+        }
+        if (backupSize != null) return backupSize;
+        LOG(CameraFragment.class, "Couldn't find any suitable video size");
+        return choices.get(choices.size() - 1);
     }
 
     private Camera.Size getHighestSupportedStillShotSize(List<Camera.Size> supportedPictureSizes) {

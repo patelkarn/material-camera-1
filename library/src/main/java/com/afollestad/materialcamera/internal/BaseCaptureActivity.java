@@ -461,6 +461,12 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
         return getIntent().getIntExtra(CameraIntentKey.QUALITY_PROFILE, CamcorderProfile.QUALITY_HIGH);
     }
 
+    @Override
+    public int qualityPicture()
+    {
+        return getIntent().getIntExtra(CameraIntentKey.QUALITY_PICTURE, MaterialCamera.MEDIUM_QUALITY);
+    }
+
     @DrawableRes
     @Override
     public int iconPause() {

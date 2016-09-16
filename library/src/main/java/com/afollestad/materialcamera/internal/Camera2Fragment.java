@@ -8,7 +8,6 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -42,6 +41,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.afollestad.materialcamera.MaterialCamera;
 import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.util.CameraUtil;
 import com.afollestad.materialcamera.util.Degrees;
@@ -563,11 +563,16 @@ public class Camera2Fragment extends BaseCameraFragment implements View.OnClickL
                 // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
                 // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
                 // garbage capture data.
+
+                Size stillImageSize = optimalPictureSize((BaseCaptureActivity) activity, largest.getWidth(),
+                        largest.getHeight(), Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)));
+
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
-                        maxPreviewHeight, largest);
+                        maxPreviewHeight, stillImageSize);
 
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, 2);
+                mImageReader = ImageReader.newInstance(stillImageSize.getWidth(), stillImageSize.getHeight(), ImageFormat.JPEG, 2);
+//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, 2);
                 mImageReader.setOnImageAvailableListener(
                         new ImageReader.OnImageAvailableListener() {
                             @Override
@@ -641,6 +646,49 @@ public class Camera2Fragment extends BaseCameraFragment implements View.OnClickL
         } catch (InterruptedException e) {
             throwError(new Exception("Interrupted while trying to lock camera opening.", e));
         }
+    }
+
+    private static Size optimalPictureSize(BaseCaptureInterface ci, int width, int height, List<Size> choices) {
+        int pictureQuality = -1;
+        switch (ci.qualityPicture())
+        {
+            case MaterialCamera.FULL_QUALITY:
+                pictureQuality = 0;
+                break;
+            case MaterialCamera.HIGH_QUALITY:
+                pictureQuality = 1;
+                height = (int) (height * .75);
+                width = (int) (width * .75);
+                break;
+            case MaterialCamera.MEDIUM_QUALITY:
+                pictureQuality = 2;
+                height = (int) (height * .50);
+                width = (int) (width * .50);
+                break;
+            case MaterialCamera.LOW_QUALITY:
+                pictureQuality = 3;
+                height = (int) (height * .25);
+                width = (int) (width * .25);
+                break;
+        }
+        if(choices.size() <= 7 || pictureQuality == 0){
+            return choices.get(pictureQuality);
+        } else if(choices.size() <= 10){
+            return choices.get(pictureQuality * 2);
+        }
+
+        Size backupSize = null;
+        for (int count = 0; count < choices.size(); count++) {
+            if (choices.get(count).getHeight() <= height) {
+                if(backupSize == null) backupSize = choices.get(count - 1);
+                if(choices.get(count).getWidth() <= width){
+                    return choices.get(count);
+                }
+            }
+        }
+        if (backupSize != null) return backupSize;
+        LOG(CameraFragment.class, "Couldn't find any suitable video size");
+        return choices.get(choices.size() - 1);
     }
 
     @Override
