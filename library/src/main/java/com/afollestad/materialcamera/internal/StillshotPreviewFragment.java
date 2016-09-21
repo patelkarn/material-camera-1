@@ -74,8 +74,7 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         final int height = mImageView.getMeasuredHeight();
 
         if (mBitmap == null) {
-            Bitmap bitmap = ImageUtil.getRotatedBitmap(Uri.parse(mOutputUri).getPath(), width, height);
-            mBitmap = bitmap;
+            mBitmap = ImageUtil.getRotatedBitmap(Uri.parse(mOutputUri).getPath(), width, height);
         }
 
         if (mBitmap == null)
