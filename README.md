@@ -4,7 +4,7 @@ Android's video recording APIs are very difficult to figure out, especially sinc
 like to mount their camera sensors upside down or sideways. This library is a result of lots of research
 and experimentation to get video recording to work universally.
 
-<img src="https://raw.githubusercontent.com/afollestad/material-camera/master/art/showcase.png" width="400px" />
+<img src="https://raw.githubusercontent.com/afollestad/material-camera/master/art/showcase1.png" width="800px" />
 
 ---
 
@@ -29,13 +29,23 @@ jCenter is the default Maven repository used by Android Studio.
 
 ### Dependency
 
+Add Bintray to your repositories, for some reason this specific library doesn't seem to work via jCenter
+even though all of my other libraries do.
+
+```gradle
+repositories {
+    jcenter()
+    maven { url "https://dl.bintray.com/drummer-aidan/maven" }
+}
+```
+
 Add this in your module's `build.gradle` file:
 
 ```gradle
 dependencies {
     // ... other dependencies
 
-    compile 'com.afollestad:material-camera:0.3.2'
+    compile 'com.afollestad:material-camera:0.4.4'
 }
 ```
 
@@ -76,6 +86,7 @@ new MaterialCamera(this)                               // Constructor takes an A
     .primaryColorAttr(R.attr.colorPrimary)             // The theme color used for the camera, defaults to colorPrimary of Activity in the constructor
     .showPortraitWarning(true)                         // Whether or not a warning is displayed if the user presses record in portrait orientation
     .defaultToFrontFacing(false)                       // Whether or not the camera will initially show the front facing camera
+    .allowChangeCamera(true)                           // Allows the user to change cameras. 
     .retryExits(false)                                 // If true, the 'Retry' button in the playback screen will exit the camera instead of going back to the recorder
     .restartTimerOnRetry(false)                        // If true, the countdown timer is reset to 0 when the user taps 'Retry' in playback
     .continueTimerInPlayback(false)                    // If true, the countdown timer will continue to go down during playback, rather than pausing.
@@ -94,7 +105,10 @@ new MaterialCamera(this)                               // Constructor takes an A
     .iconPause(R.drawable.evp_action_pause)            // Sets a custom icon used to pause playback
     .iconRestart(R.drawable.evp_action_restart)        // Sets a custom icon used to restart playback
     .labelRetry(R.string.mcam_retry)                   // Sets a custom button label for the button used to retry recording, when available
-    .labelUseVideo(R.string.mcam_use_video)            // Sets a custom button label for the button used to confirm a recording
+    .labelConfirm(R.string.mcam_use_video)             // Sets a custom button label for the button used to confirm/submit a recording
+    .autoRecordWithDelaySec(5)                         // The video camera will start recording automatically after a 5 second countdown. This disables switching between the front and back camera initially.
+    .autoRecordWithDelayMs(5000)                       // Same as the above, expressed with milliseconds instead of seconds.
+    .audioDisabled(false)                              // Set to true to record video without any audio.
     .start(CAMERA_RQ);                                 // Starts the camera activity, the result will be sent back to the current Activity
 ```
 

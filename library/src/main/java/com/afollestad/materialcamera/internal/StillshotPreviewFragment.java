@@ -8,26 +8,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.util.ImageUtil;
 
-/**
- * Created by tomiurankar on 04/03/16.
- */
 public class StillshotPreviewFragment extends BaseGalleryFragment {
 
-
     private ImageView mImageView;
+
     /**
      * Reference to the bitmap, in case 'onConfigurationChange' event comes, so we do not recreate the bitmap
      */
-    private Bitmap mBitmap;
+    private static Bitmap mBitmap;
 
     public static StillshotPreviewFragment newInstance(String outputUri, boolean allowRetry, int primaryColor) {
-        StillshotPreviewFragment fragment = new StillshotPreviewFragment();
+        final StillshotPreviewFragment fragment = new StillshotPreviewFragment();
         fragment.setRetainInstance(true);
         Bundle args = new Bundle();
         args.putString("output_uri", outputUri);
@@ -48,8 +44,8 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         super.onViewCreated(view, savedInstanceState);
         mImageView = (ImageView) view.findViewById(R.id.stillshot_imageview);
 
-        ((Button) mConfirm).setText(mInterface.labelConfirm());
-        ((Button) mRetry).setText(mInterface.labelRetry());
+        mConfirm.setText(mInterface.labelConfirm());
+        mRetry.setText(mInterface.labelRetry());
 
         mRetry.setOnClickListener(this);
         mConfirm.setOnClickListener(this);
@@ -65,20 +61,33 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (mBitmap != null && !mBitmap.isRecycled()) {
+            try {
+                mBitmap.recycle();
+                mBitmap = null;
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+    }
+
+
     /**
      * Sets bitmap to ImageView widget
      */
     private void setImageBitmap() {
-
         final int width = mImageView.getMeasuredWidth();
         final int height = mImageView.getMeasuredHeight();
 
-        if (mBitmap == null) {
+        // TODO IMPROVE MEMORY USAGE HERE, ESPECIALLY ON LOW-END DEVICES.
+        if (mBitmap == null)
             mBitmap = ImageUtil.getRotatedBitmap(Uri.parse(mOutputUri).getPath(), width, height);
-        }
 
         if (mBitmap == null)
-            showDialog("Image preview error", "Could not decode bitmap");
+            showDialog(getString(R.string.mcam_image_preview_error_title), getString(R.string.mcam_image_preview_error_message));
         else
             mImageView.setImageBitmap(mBitmap);
     }
@@ -88,6 +97,6 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         if (v.getId() == R.id.retry)
             mInterface.onRetry(mOutputUri);
         else if (v.getId() == R.id.confirm)
-            mInterface.useVideo(mOutputUri);
+            mInterface.useMedia(mOutputUri);
     }
 }

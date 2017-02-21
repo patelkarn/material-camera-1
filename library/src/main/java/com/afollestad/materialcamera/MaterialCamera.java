@@ -1,6 +1,7 @@
 package com.afollestad.materialcamera;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.media.CamcorderProfile;
 import android.support.annotation.AttrRes;
@@ -26,6 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * @author Aidan Follestad (afollestad)
  */
+@SuppressWarnings("WeakerAccess")
 public class MaterialCamera {
 
     @IntDef({QUALITY_HIGH, QUALITY_LOW, QUALITY_480P, QUALITY_720P, QUALITY_1080P})
@@ -50,13 +52,18 @@ public class MaterialCamera {
     public static final int STATUS_RECORDED = 1;
     public static final int STATUS_RETRY = 2;
 
-    private Activity mContext;
+    private Context mContext;
+    private Activity mActivityContext;
+    private android.app.Fragment mAppFragment;
+    private android.support.v4.app.Fragment mSupportFragment;
+    private boolean mIsFragment = false;
     private long mLengthLimit = -1;
     private boolean mAllowRetry = true;
     private boolean mAutoSubmit = false;
     private String mSaveDir;
     private int mPrimaryColor;
     private boolean mShowPortraitWarning = true;
+    private boolean mAllowChangeCamera = true;
     private boolean mDefaultToFrontFacing = false;
     private boolean mCountdownImmediately = false;
     private boolean mRetryExists = false;
@@ -64,7 +71,8 @@ public class MaterialCamera {
     private boolean mContinueTimerInPlayback = true;
     private boolean mForceCamera1 = false;
     private boolean mStillShot;
-
+    private boolean mAudioDisabled = false;
+    private long mAutoRecord = -1;
 
     private int mVideoEncodingBitRate = -1;
     private int mAudioEncodingBitRate = -1;
@@ -90,7 +98,24 @@ public class MaterialCamera {
 
     public MaterialCamera(@NonNull Activity context) {
         mContext = context;
+        mActivityContext = context;
         mPrimaryColor = DialogUtils.resolveColor(context, R.attr.colorPrimary);
+    }
+
+    public MaterialCamera(@NonNull android.app.Fragment context) {
+        mIsFragment = true;
+        mContext = context.getActivity();
+        mAppFragment = context;
+        mSupportFragment = null;
+        mPrimaryColor = DialogUtils.resolveColor(mContext, R.attr.colorPrimary);
+    }
+
+    public MaterialCamera(@NonNull android.support.v4.app.Fragment context) {
+        mIsFragment = true;
+        mContext = context.getContext();
+        mSupportFragment = context;
+        mAppFragment = null;
+        mPrimaryColor = DialogUtils.resolveColor(mContext, R.attr.colorPrimary);
     }
 
     public MaterialCamera countdownMillis(long lengthLimitMs) {
@@ -149,6 +174,11 @@ public class MaterialCamera {
         return this;
     }
 
+    public MaterialCamera allowChangeCamera(boolean allowChangeCamera) {
+        mAllowChangeCamera = allowChangeCamera;
+        return this;
+    }
+
     public MaterialCamera defaultToFrontFacing(boolean frontFacing) {
         mDefaultToFrontFacing = frontFacing;
         return this;
@@ -178,9 +208,12 @@ public class MaterialCamera {
         return cameraClassName;
     }
 
+    public MaterialCamera audioDisabled(boolean disabled) {
+        mAudioDisabled = disabled;
+        return this;
+    }
+
     /**
-     * @param rate
-     * @return
      * @deprecated Renamed to videoEncodingBitRate(int).
      */
     @Deprecated
@@ -283,15 +316,20 @@ public class MaterialCamera {
     }
 
     /**
-     * Will take a still shot instead of recording
-     * Note: Current implementation will default to using Camera1 API.
-     * Also the library owner has chosen to disregard the Camera2 API regardless of settings, so
-     * this is a non issue anyway.
-     *
-     * @return
+     * Will take a still shot instead of recording.
      */
     public MaterialCamera stillShot() {
         mStillShot = true;
+        return this;
+    }
+
+    public MaterialCamera autoRecordWithDelayMs(@IntRange(from = -1, to = Long.MAX_VALUE) long delayMillis) {
+        mAutoRecord = delayMillis;
+        return this;
+    }
+
+    public MaterialCamera autoRecordWithDelaySec(@IntRange(from = -1, to = Long.MAX_VALUE) int delaySeconds) {
+        mAutoRecord = delaySeconds * 1000;
         return this;
     }
 
@@ -308,12 +346,15 @@ public class MaterialCamera {
                 .putExtra(CameraIntentKey.SAVE_DIR, mSaveDir)
                 .putExtra(CameraIntentKey.PRIMARY_COLOR, mPrimaryColor)
                 .putExtra(CameraIntentKey.SHOW_PORTRAIT_WARNING, mShowPortraitWarning)
+                .putExtra(CameraIntentKey.ALLOW_CHANGE_CAMERA, mAllowChangeCamera)
                 .putExtra(CameraIntentKey.DEFAULT_TO_FRONT_FACING, mDefaultToFrontFacing)
                 .putExtra(CameraIntentKey.COUNTDOWN_IMMEDIATELY, mCountdownImmediately)
                 .putExtra(CameraIntentKey.RETRY_EXITS, mRetryExists)
                 .putExtra(CameraIntentKey.RESTART_TIMER_ON_RETRY, mRestartTimerOnRetry)
                 .putExtra(CameraIntentKey.CONTINUE_TIMER_IN_PLAYBACK, mContinueTimerInPlayback)
-                .putExtra(CameraIntentKey.STILL_SHOT, mStillShot);
+                .putExtra(CameraIntentKey.STILL_SHOT, mStillShot)
+                .putExtra(CameraIntentKey.AUTO_RECORD, mAutoRecord)
+                .putExtra(CameraIntentKey.AUDIO_DISABLED, mAudioDisabled);
 
         if (mVideoEncodingBitRate > 0)
             intent.putExtra(CameraIntentKey.VIDEO_BIT_RATE, mVideoEncodingBitRate);
@@ -355,6 +396,11 @@ public class MaterialCamera {
     }
 
     public void start(int requestCode) {
-        mContext.startActivityForResult(getIntent(), requestCode);
+        if (mIsFragment && mSupportFragment != null)
+            mSupportFragment.startActivityForResult(getIntent(), requestCode);
+        else if (mIsFragment && mAppFragment != null)
+            mAppFragment.startActivityForResult(getIntent(), requestCode);
+        else
+            mActivityContext.startActivityForResult(getIntent(), requestCode);
     }
 }

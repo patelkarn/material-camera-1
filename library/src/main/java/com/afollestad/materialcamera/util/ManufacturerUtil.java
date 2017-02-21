@@ -8,7 +8,8 @@ import android.os.Build;
  */
 public class ManufacturerUtil {
 
-    public ManufacturerUtil() {}
+    public ManufacturerUtil() {
+    }
 
     // Samsung device info
     private static final String SAMSUNG_MANUFACTURER = "samsung";
@@ -19,7 +20,7 @@ public class ManufacturerUtil {
     public static final Integer SAMSUNG_S3_PREVIEW_HEIGHT = 480;
 
     // Samsung Galaxy helper functions
-    public static boolean isSamsungDevice() {
+    static boolean isSamsungDevice() {
         return SAMSUNG_MANUFACTURER.equals(Build.MANUFACTURER.toLowerCase());
     }
 

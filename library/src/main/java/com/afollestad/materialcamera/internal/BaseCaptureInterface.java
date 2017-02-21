@@ -48,7 +48,7 @@ public interface BaseCaptureInterface {
 
     Object getBackCamera();
 
-    void useVideo(String uri);
+    void useMedia(String uri);
 
     boolean shouldAutoSubmit();
 
@@ -113,7 +113,6 @@ public interface BaseCaptureInterface {
     int iconStillshot();
 
     /**
-     *
      * @return true if we only want to take photographs instead of video capture
      */
     boolean useStillshot();
@@ -136,4 +135,9 @@ public interface BaseCaptureInterface {
 
     boolean shouldHideFlash();
 
+    long autoRecordDelay();
+
+    boolean audioDisabled();
+
+    boolean shouldHideCameraFacing();
 }
