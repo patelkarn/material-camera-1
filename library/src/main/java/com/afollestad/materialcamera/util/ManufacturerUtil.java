@@ -8,16 +8,15 @@ import android.os.Build;
  */
 public class ManufacturerUtil {
 
-    public ManufacturerUtil() {
-    }
-
-    // Samsung device info
-    private static final String SAMSUNG_MANUFACTURER = "samsung";
-
-    // Samsung Galaxy S3 info
-    private static final String SAMSUNG_S3_DEVICE_COMMON_PREFIX = "d2";
     public static final Integer SAMSUNG_S3_PREVIEW_WIDTH = 640;
     public static final Integer SAMSUNG_S3_PREVIEW_HEIGHT = 480;
+    // Samsung device info
+    private static final String SAMSUNG_MANUFACTURER = "samsung";
+    // Samsung Galaxy S3 info
+    private static final String SAMSUNG_S3_DEVICE_COMMON_PREFIX = "d2";
+
+    public ManufacturerUtil() {
+    }
 
     // Samsung Galaxy helper functions
     static boolean isSamsungDevice() {

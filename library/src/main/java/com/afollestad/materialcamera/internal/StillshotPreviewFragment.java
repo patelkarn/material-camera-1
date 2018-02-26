@@ -15,14 +15,15 @@ import com.afollestad.materialcamera.util.ImageUtil;
 
 public class StillshotPreviewFragment extends BaseGalleryFragment {
 
-    private ImageView mImageView;
-
     /**
-     * Reference to the bitmap, in case 'onConfigurationChange' event comes, so we do not recreate the bitmap
+     * Reference to the bitmap, in case 'onConfigurationChange' event comes, so we do not recreate the
+     * bitmap
      */
     private static Bitmap mBitmap;
+    private ImageView mImageView;
 
-    public static StillshotPreviewFragment newInstance(String outputUri, boolean allowRetry, int primaryColor) {
+    public static StillshotPreviewFragment newInstance(
+            String outputUri, boolean allowRetry, int primaryColor) {
         final StillshotPreviewFragment fragment = new StillshotPreviewFragment();
         fragment.setRetainInstance(true);
         Bundle args = new Bundle();
@@ -35,14 +36,15 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.mcam_fragment_stillshot, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mImageView = (ImageView) view.findViewById(R.id.stillshot_imageview);
+        mImageView = view.findViewById(R.id.stillshot_imageview);
 
         mConfirm.setText(mInterface.labelConfirm());
         mRetry.setText(mInterface.labelRetry());
@@ -50,15 +52,18 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         mRetry.setOnClickListener(this);
         mConfirm.setOnClickListener(this);
 
-        mImageView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
+        mImageView
+                .getViewTreeObserver()
+                .addOnPreDrawListener(
+                        new ViewTreeObserver.OnPreDrawListener() {
+                            @Override
+                            public boolean onPreDraw() {
                 setImageBitmap();
                 mImageView.getViewTreeObserver().removeOnPreDrawListener(this);
 
                 return true;
-            }
-        });
+                            }
+                        });
     }
 
     @Override
@@ -74,7 +79,6 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
         }
     }
 
-
     /**
      * Sets bitmap to ImageView widget
      */
@@ -87,16 +91,15 @@ public class StillshotPreviewFragment extends BaseGalleryFragment {
             mBitmap = ImageUtil.getRotatedBitmap(Uri.parse(mOutputUri).getPath(), width, height);
 
         if (mBitmap == null)
-            showDialog(getString(R.string.mcam_image_preview_error_title), getString(R.string.mcam_image_preview_error_message));
-        else
-            mImageView.setImageBitmap(mBitmap);
+            showDialog(
+                    getString(R.string.mcam_image_preview_error_title),
+                    getString(R.string.mcam_image_preview_error_message));
+        else mImageView.setImageBitmap(mBitmap);
     }
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.retry)
-            mInterface.onRetry(mOutputUri);
-        else if (v.getId() == R.id.confirm)
-            mInterface.useMedia(mOutputUri);
-    }
+        if (v.getId() == R.id.retry) mInterface.onRetry(mOutputUri);
+        else if (v.getId() == R.id.confirm) mInterface.useMedia(mOutputUri);
+  }
 }

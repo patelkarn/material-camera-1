@@ -28,7 +28,8 @@ public class ImageUtil {
      * @param output   path to output file
      * @param callback will always return in originating thread
      */
-    public static void saveToDiskAsync(final byte[] input, final File output, final ICallback callback) {
+    public static void saveToDiskAsync(
+            final byte[] input, final File output, final ICallback callback) {
         final Handler handler = new Handler();
         new Thread() {
             @Override
@@ -39,27 +40,29 @@ public class ImageUtil {
                     outputStream.flush();
                     outputStream.close();
 
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.done(null);
-                        }
-                    });
+                    handler.post(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.done(null);
+                                }
+                            });
                 } catch (final Exception e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.done(e);
-                        }
-                    });
+                    handler.post(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.done(e);
+                                }
+                            });
                 }
             }
         }.start();
     }
 
     /**
-     * Rotates the bitmap per their EXIF flag. This is a recursive function that will
-     * be called again if the image needs to be downsized more.
+     * Rotates the bitmap per their EXIF flag. This is a recursive function that will be called again
+     * if the image needs to be downsized more.
      *
      * @param inputFile Expects an JPEG file if corrected orientation wants to be set.
      * @return rotated bitmap or null
@@ -76,17 +79,18 @@ public class ImageUtil {
 
         final Bitmap origBitmap = BitmapFactory.decodeFile(inputFile, opts);
 
-        if (origBitmap == null)
-            return null;
+        if (origBitmap == null) return null;
 
         Matrix matrix = new Matrix();
         matrix.preRotate(rotationInDegrees);
         // we need not check if the rotation is not needed, since the below function will then return the same bitmap. Thus no memory loss occurs.
 
-        return Bitmap.createBitmap(origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), matrix, true);
+        return Bitmap.createBitmap(
+                origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), matrix, true);
     }
 
-    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight, int rotationInDegrees) {
+    private static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight, int rotationInDegrees) {
 
         // Raw height and width of image
         final int height;
@@ -94,7 +98,7 @@ public class ImageUtil {
         int inSampleSize = 1;
 
         // Check for rotation
-        if(rotationInDegrees == DEGREES_90 || rotationInDegrees == DEGREES_270){
+        if (rotationInDegrees == DEGREES_90 || rotationInDegrees == DEGREES_270) {
             width = options.outHeight;
             height = options.outWidth;
         } else {
@@ -118,7 +122,8 @@ public class ImageUtil {
     private static int getExifDegreesFromJpeg(String inputFile) {
         try {
             final ExifInterface exif = new ExifInterface(inputFile);
-            final int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            final int exifOrientation =
+                    exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
             if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
                 return 90;
             } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
@@ -128,7 +133,7 @@ public class ImageUtil {
             }
         } catch (IOException e) {
             Log.e("exif", "Error when trying to get exif data from : " + inputFile, e);
-        }
-        return 0;
     }
+    return 0;
+  }
 }

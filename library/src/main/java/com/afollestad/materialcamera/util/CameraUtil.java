@@ -31,38 +31,42 @@ public class CameraUtil {
     }
 
     public static boolean isChromium() {
-        return Build.BRAND.equalsIgnoreCase("chromium") &&
-                Build.MANUFACTURER.equalsIgnoreCase("chromium");
+        return Build.BRAND.equalsIgnoreCase("chromium")
+                && Build.MANUFACTURER.equalsIgnoreCase("chromium");
     }
 
     public static String getDurationString(long durationMs) {
-        return String.format(Locale.getDefault(), "%02d:%02d",
+        return String.format(
+                Locale.getDefault(),
+                "%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(durationMs),
-                TimeUnit.MILLISECONDS.toSeconds(durationMs) -
-                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(durationMs))
-        );
+                TimeUnit.MILLISECONDS.toSeconds(durationMs)
+                        - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(durationMs)));
     }
 
     @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
-    public static File makeTempFile(@NonNull Context context, @Nullable String saveDir, String prefix, String extension) {
-        if (saveDir == null)
-            saveDir = context.getExternalCacheDir().getAbsolutePath();
-        final String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+    public static File makeTempFile(
+            @NonNull Context context, @Nullable String saveDir, String prefix, String extension) {
+        if (saveDir == null) saveDir = context.getExternalCacheDir().getAbsolutePath();
+        final String timeStamp =
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         final File dir = new File(saveDir);
         dir.mkdirs();
         return new File(dir, prefix + timeStamp + extension);
     }
 
     public static boolean hasCamera(Context context) {
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) ||
-                context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)
+                || context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
     }
 
-    public static List<Integer> getSupportedFlashModes(Context context, Camera.Parameters parameters) {
+    public static List<Integer> getSupportedFlashModes(
+            Context context, Camera.Parameters parameters) {
         //check has system feature for flash
         if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
             List<String> modes = parameters.getSupportedFlashModes();
-            if (modes == null || (modes.size() == 1 && modes.get(0).equals(Camera.Parameters.FLASH_MODE_OFF))) {
+            if (modes == null
+                    || (modes.size() == 1 && modes.get(0).equals(Camera.Parameters.FLASH_MODE_OFF))) {
                 return null; //not supported
             } else {
                 ArrayList<Integer> flashModes = new ArrayList<>();
@@ -93,16 +97,17 @@ public class CameraUtil {
 
     // TODO: Take a hard look at how this works
     // Camera2
-    public static List<Integer> getSupportedFlashModes(Context context, CameraCharacteristics characteristics) {
+    public static List<Integer> getSupportedFlashModes(
+            Context context, CameraCharacteristics characteristics) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return null; //doesn't support camera2
         } else if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
             Boolean flashAvailable = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-            if (flashAvailable == null || !flashAvailable)
-                return null;
+            if (flashAvailable == null || !flashAvailable) return null;
 
             int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
-            if (modes == null || (modes.length == 1 && modes[0] == CameraCharacteristics.CONTROL_AE_MODE_OFF)) {
+            if (modes == null
+                    || (modes.length == 1 && modes[0] == CameraCharacteristics.CONTROL_AE_MODE_OFF)) {
                 return null; //not supported
             } else {
                 ArrayList<Integer> flashModes = new ArrayList<>(3);
@@ -148,7 +153,8 @@ public class CameraUtil {
                     }
                     final CameraCharacteristics characteristics = manager.getCameraCharacteristics(str);
                     //noinspection ConstantConditions
-                    final int supportLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+                    final int supportLevel =
+                            characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
                     if (supportLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
                         notNull = false;
                         break;
@@ -172,7 +178,10 @@ public class CameraUtil {
     }
 
     public static boolean isColorDark(int color) {
-        double darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255;
+        double darkness =
+                1
+                        - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color))
+                        / 255;
         return darkness >= 0.5;
     }
 

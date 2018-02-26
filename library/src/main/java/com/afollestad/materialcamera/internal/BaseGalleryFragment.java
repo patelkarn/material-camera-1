@@ -12,7 +12,8 @@ import com.afollestad.materialcamera.R;
 import com.afollestad.materialcamera.util.CameraUtil;
 import com.afollestad.materialdialogs.MaterialDialog;
 
-public abstract class BaseGalleryFragment extends Fragment implements CameraUriInterface, View.OnClickListener {
+public abstract class BaseGalleryFragment extends Fragment
+        implements CameraUriInterface, View.OnClickListener {
 
     BaseCaptureInterface mInterface;
     int mPrimaryColor;
@@ -40,8 +41,8 @@ public abstract class BaseGalleryFragment extends Fragment implements CameraUriI
         super.onViewCreated(view, savedInstanceState);
         mOutputUri = getArguments().getString("output_uri");
         mControlsFrame = view.findViewById(R.id.controlsFrame);
-        mRetry = (Button) view.findViewById(R.id.retry);
-        mConfirm = (Button) view.findViewById(R.id.confirm);
+        mRetry = view.findViewById(R.id.retry);
+        mConfirm = view.findViewById(R.id.confirm);
 
         mPrimaryColor = getArguments().getInt(CameraIntentKey.PRIMARY_COLOR);
         if (CameraUtil.isColorDark(mPrimaryColor)) {
@@ -56,8 +57,8 @@ public abstract class BaseGalleryFragment extends Fragment implements CameraUriI
         }
         mControlsFrame.setBackgroundColor(mPrimaryColor);
 
-        mRetry.setVisibility(getArguments().getBoolean(CameraIntentKey.ALLOW_RETRY, true) ? View.VISIBLE : View.GONE);
-
+        mRetry.setVisibility(
+                getArguments().getBoolean(CameraIntentKey.ALLOW_RETRY, true) ? View.VISIBLE : View.GONE);
     }
 
     @Override

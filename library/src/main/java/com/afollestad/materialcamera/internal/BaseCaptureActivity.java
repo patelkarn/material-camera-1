@@ -38,8 +38,16 @@ import java.util.List;
 /**
  * @author Aidan Follestad (afollestad)
  */
-public abstract class BaseCaptureActivity extends AppCompatActivity implements BaseCaptureInterface {
+public abstract class BaseCaptureActivity extends AppCompatActivity
+        implements BaseCaptureInterface {
 
+    public static final int PERMISSION_RC = 69;
+    public static final int CAMERA_POSITION_UNKNOWN = 0;
+    public static final int CAMERA_POSITION_FRONT = 1;
+    public static final int CAMERA_POSITION_BACK = 2;
+    public static final int FLASH_MODE_OFF = 0;
+    public static final int FLASH_MODE_ALWAYS_ON = 1;
+    public static final int FLASH_MODE_AUTO = 2;
     private int mCameraPosition = CAMERA_POSITION_UNKNOWN;
     private int mFlashMode = FLASH_MODE_OFF;
     private boolean mRequestingPermission;
@@ -50,26 +58,6 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     private Object mBackCameraId;
     private boolean mDidRecord = false;
     private List<Integer> mFlashModes;
-
-    public static final int PERMISSION_RC = 69;
-
-    @IntDef({CAMERA_POSITION_UNKNOWN, CAMERA_POSITION_BACK, CAMERA_POSITION_FRONT})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface CameraPosition {
-    }
-
-    public static final int CAMERA_POSITION_UNKNOWN = 0;
-    public static final int CAMERA_POSITION_FRONT = 1;
-    public static final int CAMERA_POSITION_BACK = 2;
-
-    @IntDef({FLASH_MODE_OFF, FLASH_MODE_ALWAYS_ON, FLASH_MODE_AUTO})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface FlashMode {
-    }
-
-    public static final int FLASH_MODE_OFF = 0;
-    public static final int FLASH_MODE_ALWAYS_ON = 1;
-    public static final int FLASH_MODE_AUTO = 2;
 
     @Override
     protected final void onSaveInstanceState(Bundle outState) {
@@ -101,12 +89,14 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
                     .title(R.string.mcam_error)
                     .content(R.string.mcam_video_capture_unsupported)
                     .positiveText(android.R.string.ok)
-                    .dismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            finish();
-                        }
-                    }).show();
+                    .dismissListener(
+                            new DialogInterface.OnDismissListener() {
+                                @Override
+                                public void onDismiss(DialogInterface dialog) {
+                                    finish();
+                                }
+                            })
+                    .show();
             return;
         }
         setContentView(R.layout.mcam_activity_videocapture);
@@ -144,8 +134,10 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
             mFlashMode = savedInstanceState.getInt("flash_mode");
         }
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow()
+                .addFlags(
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                                | WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     private void checkPermissions() {
@@ -153,8 +145,12 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
             showInitialRecorder();
             return;
         }
-        final boolean cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        final boolean audioGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        final boolean cameraGranted =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED;
+        final boolean audioGranted =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                        == PackageManager.PERMISSION_GRANTED;
         final boolean audioNeeded = !useStillshot() && !audioDisabled();
 
         String[] perms = null;
@@ -181,8 +177,7 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     @Override
     protected final void onPause() {
         super.onPause();
-        if (!isFinishing() && !isChangingConfigurations() && !mRequestingPermission)
-            finish();
+        if (!isFinishing() && !isChangingConfigurations() && !mRequestingPermission) finish();
     }
 
     @Override
@@ -212,26 +207,25 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     }
 
     @Override
-    public void setRecordingStart(long start) {
-        mRecordingStart = start;
-        if (start > -1 && hasLengthLimit())
-            setRecordingEnd(mRecordingStart + getLengthLimit());
-        else setRecordingEnd(-1);
-    }
-
-    @Override
     public long getRecordingStart() {
         return mRecordingStart;
     }
 
     @Override
-    public void setRecordingEnd(long end) {
-        mRecordingEnd = end;
+    public void setRecordingStart(long start) {
+        mRecordingStart = start;
+        if (start > -1 && hasLengthLimit()) setRecordingEnd(mRecordingStart + getLengthLimit());
+        else setRecordingEnd(-1);
     }
 
     @Override
     public long getRecordingEnd() {
         return mRecordingEnd;
+    }
+
+    @Override
+    public void setRecordingEnd(long end) {
+        mRecordingEnd = end;
     }
 
     @Override
@@ -258,12 +252,10 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     public void toggleCameraPosition() {
         if (getCurrentCameraPosition() == CAMERA_POSITION_FRONT) {
             // Front, go to back if possible
-            if (getBackCamera() != null)
-                setCameraPosition(CAMERA_POSITION_BACK);
+            if (getBackCamera() != null) setCameraPosition(CAMERA_POSITION_BACK);
         } else {
             // Back, go to front if possible
-            if (getFrontCamera() != null)
-                setCameraPosition(CAMERA_POSITION_FRONT);
+            if (getFrontCamera() != null) setCameraPosition(CAMERA_POSITION_FRONT);
         }
     }
 
@@ -274,14 +266,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
 
     @Override
     public Object getCurrentCameraId() {
-        if (getCurrentCameraPosition() == CAMERA_POSITION_FRONT)
-            return getFrontCamera();
+        if (getCurrentCameraPosition() == CAMERA_POSITION_FRONT) return getFrontCamera();
         else return getBackCamera();
-    }
-
-    @Override
-    public void setFrontCamera(Object id) {
-        mFrontCameraId = id;
     }
 
     @Override
@@ -290,8 +276,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     }
 
     @Override
-    public void setBackCamera(Object id) {
-        mBackCameraId = id;
+    public void setFrontCamera(Object id) {
+        mFrontCameraId = id;
     }
 
     @Override
@@ -299,35 +285,37 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
         return mBackCameraId;
     }
 
+    @Override
+    public void setBackCamera(Object id) {
+        mBackCameraId = id;
+    }
+
     private void showInitialRecorder() {
-        getFragmentManager().beginTransaction()
-                .replace(R.id.container, createFragment())
-                .commit();
+        getFragmentManager().beginTransaction().replace(R.id.container, createFragment()).commit();
     }
 
     @Override
     public final void onRetry(@Nullable String outputUri) {
-        if (outputUri != null)
-            deleteOutputFile(outputUri);
-        if (!shouldAutoSubmit() || restartTimerOnRetry())
-            setRecordingStart(-1);
+        if (outputUri != null) deleteOutputFile(outputUri);
+        if (!shouldAutoSubmit() || restartTimerOnRetry()) setRecordingStart(-1);
         if (getIntent().getBooleanExtra(CameraIntentKey.RETRY_EXITS, false)) {
-            setResult(RESULT_OK, new Intent()
-                    .putExtra(MaterialCamera.STATUS_EXTRA, MaterialCamera.STATUS_RETRY));
+            setResult(
+                    RESULT_OK,
+                    new Intent().putExtra(MaterialCamera.STATUS_EXTRA, MaterialCamera.STATUS_RETRY));
             finish();
             return;
         }
-        getFragmentManager().beginTransaction()
-                .replace(R.id.container, createFragment())
-                .commit();
+        getFragmentManager().beginTransaction().replace(R.id.container, createFragment()).commit();
     }
 
     @Override
     public final void onShowPreview(@Nullable final String outputUri, boolean countdownIsAtZero) {
-        if ((shouldAutoSubmit() && (countdownIsAtZero || !allowRetry() || !hasLengthLimit())) || outputUri == null) {
+        if ((shouldAutoSubmit() && (countdownIsAtZero || !allowRetry() || !hasLengthLimit()))
+                || outputUri == null) {
             if (outputUri == null) {
-                setResult(RESULT_CANCELED, new Intent().putExtra(MaterialCamera.ERROR_EXTRA,
-                        new TimeLimitReachedException()));
+                setResult(
+                        RESULT_CANCELED,
+                        new Intent().putExtra(MaterialCamera.ERROR_EXTRA, new TimeLimitReachedException()));
                 finish();
                 return;
             }
@@ -337,11 +325,10 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
                 // No countdown or countdown should not continue through playback, reset timer to 0
                 setRecordingStart(-1);
             }
-            Fragment frag = PlaybackVideoFragment.newInstance(outputUri, allowRetry(),
-                    getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0));
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, frag)
-                    .commit();
+            Fragment frag =
+                    PlaybackVideoFragment.newInstance(
+                            outputUri, allowRetry(), getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0));
+            getFragmentManager().beginTransaction().replace(R.id.container, frag).commit();
         }
     }
 
@@ -350,11 +337,10 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
         if (shouldAutoSubmit()) {
             useMedia(outputUri);
         } else {
-            Fragment frag = StillshotPreviewFragment.newInstance(outputUri, allowRetry(),
-                    getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0));
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, frag)
-                    .commit();
+            Fragment frag =
+                    StillshotPreviewFragment.newInstance(
+                            outputUri, allowRetry(), getIntent().getIntExtra(CameraIntentKey.PRIMARY_COLOR, 0));
+            getFragmentManager().beginTransaction().replace(R.id.container, frag).commit();
         }
     }
 
@@ -381,7 +367,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     }
 
     @Override
-    public final void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public final void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mRequestingPermission = false;
         if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
@@ -389,12 +376,14 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
                     .title(R.string.mcam_permissions_needed)
                     .content(R.string.mcam_video_perm_warning)
                     .positiveText(android.R.string.ok)
-                    .dismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            finish();
-                        }
-                    }).show();
+                    .dismissListener(
+                            new DialogInterface.OnDismissListener() {
+                                @Override
+                                public void onDismiss(DialogInterface dialog) {
+                                    finish();
+                                }
+                            })
+                    .show();
         } else {
             showInitialRecorder();
         }
@@ -403,9 +392,11 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     @Override
     public final void useMedia(String uri) {
         if (uri != null) {
-            setResult(Activity.RESULT_OK, getIntent()
-                    .putExtra(MaterialCamera.STATUS_EXTRA, MaterialCamera.STATUS_RECORDED)
-                    .setDataAndType(Uri.parse(uri), useStillshot() ? "image/jpeg" : "video/mp4"));
+            setResult(
+                    Activity.RESULT_OK,
+                    getIntent()
+                            .putExtra(MaterialCamera.STATUS_EXTRA, MaterialCamera.STATUS_RECORDED)
+                            .setDataAndType(Uri.parse(uri), useStillshot() ? "image/jpeg" : "video/mp4"));
         }
         finish();
     }
@@ -477,12 +468,6 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
         return getIntent().getIntExtra(CameraIntentKey.QUALITY_PROFILE, CamcorderProfile.QUALITY_HIGH);
     }
 
-    @Override
-    public int qualityPicture()
-    {
-        return getIntent().getIntExtra(CameraIntentKey.QUALITY_PICTURE, MaterialCamera.MEDIUM_QUALITY);
-    }
-
     @DrawableRes
     @Override
     public int iconPause() {
@@ -541,13 +526,17 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     @StringRes
     @Override
     public int labelConfirm() {
-        return getIntent().getIntExtra(CameraIntentKey.LABEL_CONFIRM, useStillshot() ? R.string.mcam_use_stillshot : R.string.mcam_use_video);
+        return getIntent()
+                .getIntExtra(
+                        CameraIntentKey.LABEL_CONFIRM,
+                        useStillshot() ? R.string.mcam_use_stillshot : R.string.mcam_use_video);
     }
 
     @DrawableRes
     @Override
     public int iconStillshot() {
-        return getIntent().getIntExtra(CameraIntentKey.ICON_STILL_SHOT, R.drawable.mcam_action_stillshot);
+        return getIntent()
+                .getIntExtra(CameraIntentKey.ICON_STILL_SHOT, R.drawable.mcam_action_stillshot);
     }
 
     @Override
@@ -558,7 +547,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     @DrawableRes
     @Override
     public int iconFlashAuto() {
-        return getIntent().getIntExtra(CameraIntentKey.ICON_FLASH_AUTO, R.drawable.mcam_action_flash_auto);
+        return getIntent()
+                .getIntExtra(CameraIntentKey.ICON_FLASH_AUTO, R.drawable.mcam_action_flash_auto);
     }
 
     @DrawableRes
@@ -570,7 +560,8 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     @DrawableRes
     @Override
     public int iconFlashOff() {
-        return getIntent().getIntExtra(CameraIntentKey.ICON_FLASH_OFF, R.drawable.mcam_action_flash_off);
+        return getIntent()
+                .getIntExtra(CameraIntentKey.ICON_FLASH_OFF, R.drawable.mcam_action_flash_off);
     }
 
     @Override
@@ -597,4 +588,13 @@ public abstract class BaseCaptureActivity extends AppCompatActivity implements B
     public boolean shouldHideCameraFacing() {
         return !getIntent().getBooleanExtra(CameraIntentKey.ALLOW_CHANGE_CAMERA, false);
     }
+
+    @IntDef({CAMERA_POSITION_UNKNOWN, CAMERA_POSITION_BACK, CAMERA_POSITION_FRONT})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface CameraPosition {
+    }
+
+    @IntDef({FLASH_MODE_OFF, FLASH_MODE_ALWAYS_ON, FLASH_MODE_AUTO})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface FlashMode {}
 }

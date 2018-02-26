@@ -11,7 +11,7 @@ import android.view.SurfaceView;
 @SuppressLint("ViewConstructor")
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
-    private final static String TAG = "SF-CameraPreview";
+    private static final String TAG = "SF-CameraPreview";
 
     protected final SurfaceHolder mHolder;
     private final Camera mCamera;
@@ -43,8 +43,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        if (mHolder.getSurface() == null)
-            return;
+        if (mHolder.getSurface() == null) return;
         try {
             mCamera.stopPreview();
         } catch (Exception ignored) {
@@ -59,8 +58,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
      * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
-     * calculated from the parameters. Note that the actual sizes of parameters don't matter, that
-     * is, calling setAspectRatio(2, 3) and setAspectRatio(4, 6) make the same result.
+     * calculated from the parameters. Note that the actual sizes of parameters don't matter, that is,
+     * calling setAspectRatio(2, 3) and setAspectRatio(4, 6) make the same result.
      *
      * @param width  Relative horizontal size
      * @param height Relative vertical size
@@ -87,6 +86,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
             } else {
                 setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
             }
-        }
     }
+  }
 }

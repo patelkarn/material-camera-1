@@ -16,9 +16,15 @@ public class FragmentActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             if (support)
-                getSupportFragmentManager().beginTransaction().add(R.id.container, DemoSupportFragment.getInstance()).commit();
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .add(R.id.container, DemoSupportFragment.getInstance())
+                        .commit();
             else
-                getFragmentManager().beginTransaction().add(R.id.container, DemoFragment.getInstance()).commit();
+                getFragmentManager()
+                        .beginTransaction()
+                        .add(R.id.container, DemoFragment.getInstance())
+                        .commit();
         }
     }
 }

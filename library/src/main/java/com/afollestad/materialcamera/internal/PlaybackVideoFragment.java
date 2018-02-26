@@ -20,14 +20,16 @@ import com.afollestad.materialdialogs.MaterialDialog;
 /**
  * @author Aidan Follestad (afollestad)
  */
-public class PlaybackVideoFragment extends Fragment implements CameraUriInterface, EasyVideoCallback {
+public class PlaybackVideoFragment extends Fragment
+        implements CameraUriInterface, EasyVideoCallback {
 
     private EasyVideoPlayer mPlayer;
     private String mOutputUri;
     private BaseCaptureInterface mInterface;
 
     private Handler mCountdownHandler;
-    private final Runnable mCountdownRunnable = new Runnable() {
+    private final Runnable mCountdownRunnable =
+            new Runnable() {
         @Override
         public void run() {
             if (mPlayer != null) {
@@ -41,16 +43,10 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
                     mCountdownHandler.postDelayed(mCountdownRunnable, 200);
             }
         }
-    };
+            };
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        mInterface = (BaseCaptureInterface) activity;
-    }
-
-    public static PlaybackVideoFragment newInstance(String outputUri, boolean allowRetry, int primaryColor) {
+    public static PlaybackVideoFragment newInstance(
+            String outputUri, boolean allowRetry, int primaryColor) {
         PlaybackVideoFragment fragment = new PlaybackVideoFragment();
         fragment.setRetainInstance(true);
         Bundle args = new Bundle();
@@ -59,6 +55,13 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
         args.putInt(CameraIntentKey.PRIMARY_COLOR, primaryColor);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mInterface = (BaseCaptureInterface) activity;
     }
 
     @Override
@@ -80,7 +83,8 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.mcam_fragment_videoplayback, container, false);
     }
 
@@ -88,7 +92,7 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mPlayer = (EasyVideoPlayer) view.findViewById(R.id.playbackView);
+        mPlayer = view.findViewById(R.id.playbackView);
         mPlayer.setCallback(this);
 
         mPlayer.setSubmitTextRes(mInterface.labelConfirm());
@@ -103,7 +107,9 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
         mPlayer.setThemeColor(getArguments().getInt(CameraIntentKey.PRIMARY_COLOR));
         mOutputUri = getArguments().getString("output_uri");
 
-        if (mInterface.hasLengthLimit() && mInterface.shouldAutoSubmit() && mInterface.continueTimerInPlayback()) {
+        if (mInterface.hasLengthLimit()
+                && mInterface.shouldAutoSubmit()
+                && mInterface.continueTimerInPlayback()) {
             final long diff = mInterface.getRecordingEnd() - System.currentTimeMillis();
             mPlayer.setBottomLabelText(String.format("-%s", CameraUtil.getDurationString(diff)));
             startCountdownTimer();
@@ -113,8 +119,7 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
     }
 
     private void startCountdownTimer() {
-        if (mCountdownHandler == null)
-            mCountdownHandler = new Handler();
+        if (mCountdownHandler == null) mCountdownHandler = new Handler();
         else mCountdownHandler.removeCallbacks(mCountdownRunnable);
         mCountdownHandler.post(mCountdownRunnable);
     }
@@ -137,8 +142,7 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
             mPlayer.release();
             mPlayer = null;
         }
-        if (mInterface != null)
-            mInterface.useMedia(mOutputUri);
+        if (mInterface != null) mInterface.useMedia(mOutputUri);
     }
 
     @Override
@@ -181,8 +185,7 @@ public class PlaybackVideoFragment extends Fragment implements CameraUriInterfac
 
     @Override
     public void onRetry(EasyVideoPlayer player, Uri source) {
-        if (mInterface != null)
-            mInterface.onRetry(mOutputUri);
+        if (mInterface != null) mInterface.onRetry(mOutputUri);
     }
 
     @Override

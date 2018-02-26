@@ -43,7 +43,8 @@ import static com.afollestad.materialcamera.internal.BaseCaptureActivity.FLASH_M
 /**
  * @author Aidan Follestad (afollestad)
  */
-abstract class BaseCameraFragment extends Fragment implements CameraUriInterface, View.OnClickListener {
+abstract class BaseCameraFragment extends Fragment
+        implements CameraUriInterface, View.OnClickListener {
 
     protected ImageButton mButtonVideo;
     protected ImageButton mButtonStillshot;
@@ -51,20 +52,11 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
     protected ImageButton mButtonFlash;
     protected TextView mRecordDuration;
     protected TextView mDelayStartCountdown;
-
-    private boolean mIsRecording;
     protected String mOutputUri;
     protected BaseCaptureInterface mInterface;
     protected Handler mPositionHandler;
-    protected MediaRecorder mMediaRecorder;
-    private int mIconTextColor;
-
-    protected static void LOG(Object context, String message) {
-        Log.d(context instanceof Class<?> ? ((Class<?>) context).getSimpleName() :
-                context.getClass().getSimpleName(), message);
-    }
-
-    private final Runnable mPositionUpdater = new Runnable() {
+    private final Runnable mPositionUpdater =
+            new Runnable() {
         @Override
         public void run() {
             if (mInterface == null || mRecordDuration == null) return;
@@ -82,18 +74,33 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
             } else {
                 mRecordDuration.setText(CameraUtil.getDurationString(now - mRecordStart));
             }
-            if (mPositionHandler != null)
-                mPositionHandler.postDelayed(this, 1000);
+            if (mPositionHandler != null) mPositionHandler.postDelayed(this, 1000);
         }
-    };
+            };
+    protected MediaRecorder mMediaRecorder;
+    private boolean mIsRecording;
+    private int mIconTextColor;
+    private boolean mDidAutoRecord = false;
+    private Handler mDelayHandler;
+    private int mDelayCurrentSecond = -1;
+
+    protected static void LOG(Object context, String message) {
+        Log.d(
+                context instanceof Class<?>
+                        ? ((Class<?>) context).getSimpleName()
+                        : context.getClass().getSimpleName(),
+                message);
+    }
 
     @Override
-    public final View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public final View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.mcam_fragment_videocapture, container, false);
     }
 
     protected void setImageRes(ImageView iv, @DrawableRes int res) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && iv.getBackground() instanceof RippleDrawable) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                && iv.getBackground() instanceof RippleDrawable) {
             RippleDrawable rd = (RippleDrawable) iv.getBackground();
             rd.setColor(ColorStateList.valueOf(CameraUtil.adjustAlpha(mIconTextColor, 0.3f)));
         }
@@ -108,19 +115,22 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mDelayStartCountdown = (TextView) view.findViewById(R.id.delayStartCountdown);
-        mButtonVideo = (ImageButton) view.findViewById(R.id.video);
-        mButtonStillshot = (ImageButton) view.findViewById(R.id.stillshot);
-        mRecordDuration = (TextView) view.findViewById(R.id.recordDuration);
-        mButtonFacing = (ImageButton) view.findViewById(R.id.facing);
+        mDelayStartCountdown = view.findViewById(R.id.delayStartCountdown);
+        mButtonVideo = view.findViewById(R.id.video);
+        mButtonStillshot = view.findViewById(R.id.stillshot);
+        mRecordDuration = view.findViewById(R.id.recordDuration);
+        mButtonFacing = view.findViewById(R.id.facing);
         if (mInterface.shouldHideCameraFacing() || CameraUtil.isChromium()) {
             mButtonFacing.setVisibility(View.GONE);
         } else {
-            setImageRes(mButtonFacing, mInterface.getCurrentCameraPosition() == CAMERA_POSITION_BACK ?
-                    mInterface.iconFrontCamera() : mInterface.iconRearCamera());
+            setImageRes(
+                    mButtonFacing,
+                    mInterface.getCurrentCameraPosition() == CAMERA_POSITION_BACK
+                            ? mInterface.iconFrontCamera()
+                            : mInterface.iconRearCamera());
         }
 
-        mButtonFlash = (ImageButton) view.findViewById(R.id.flash);
+        mButtonFlash = view.findViewById(R.id.flash);
         setupFlashMode();
 
         mButtonVideo.setOnClickListener(this);
@@ -145,8 +155,7 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
             mInterface.setDidRecord(false);
         }
 
-        if (savedInstanceState != null)
-            mOutputUri = savedInstanceState.getString("output_uri");
+        if (savedInstanceState != null) mOutputUri = savedInstanceState.getString("output_uri");
 
         if (mInterface.useStillshot()) {
             mButtonVideo.setVisibility(View.GONE);
@@ -169,12 +178,12 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
         }
     }
 
-    private boolean mDidAutoRecord = false;
-    private Handler mDelayHandler;
-    private int mDelayCurrentSecond = -1;
-
     protected void onCameraOpened() {
-        if (mDidAutoRecord || mInterface == null || mInterface.useStillshot() || mInterface.autoRecordDelay() < 0 || getActivity() == null) {
+        if (mDidAutoRecord
+                || mInterface == null
+                || mInterface.useStillshot()
+                || mInterface.autoRecordDelay() < 0
+                || getActivity() == null) {
             mDelayStartCountdown.setVisibility(View.GONE);
             mDelayHandler = null;
             return;
@@ -195,39 +204,43 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
         if (mInterface.autoRecordDelay() < 1000) {
             // Less than a second delay
             mDelayStartCountdown.setVisibility(View.GONE);
-            mDelayHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (!isAdded() || getActivity() == null || mIsRecording) return;
-                    mButtonVideo.setEnabled(true);
-                    mIsRecording = startRecordingVideo();
-                    mDelayHandler = null;
-                }
-            }, mInterface.autoRecordDelay());
+            mDelayHandler.postDelayed(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isAdded() || getActivity() == null || mIsRecording) return;
+                            mButtonVideo.setEnabled(true);
+                            mIsRecording = startRecordingVideo();
+                            mDelayHandler = null;
+                        }
+                    },
+                    mInterface.autoRecordDelay());
             return;
         }
 
         mDelayStartCountdown.setVisibility(View.VISIBLE);
         mDelayCurrentSecond = (int) mInterface.autoRecordDelay() / 1000;
-        mDelayHandler.postDelayed(new Runnable() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void run() {
-                if (!isAdded() || getActivity() == null || mIsRecording) return;
-                mDelayCurrentSecond -= 1;
-                mDelayStartCountdown.setText(Integer.toString(mDelayCurrentSecond));
+        mDelayHandler.postDelayed(
+                new Runnable() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void run() {
+                        if (!isAdded() || getActivity() == null || mIsRecording) return;
+                        mDelayCurrentSecond -= 1;
+                        mDelayStartCountdown.setText(Integer.toString(mDelayCurrentSecond));
 
-                if (mDelayCurrentSecond == 0) {
-                    mDelayStartCountdown.setVisibility(View.GONE);
-                    mButtonVideo.setEnabled(true);
-                    mIsRecording = startRecordingVideo();
-                    mDelayHandler = null;
-                    return;
-                }
+                        if (mDelayCurrentSecond == 0) {
+                            mDelayStartCountdown.setVisibility(View.GONE);
+                            mButtonVideo.setEnabled(true);
+                            mIsRecording = startRecordingVideo();
+                            mDelayHandler = null;
+                            return;
+                        }
 
-                mDelayHandler.postDelayed(this, 1000);
-            }
-        }, 1000);
+                        mDelayHandler.postDelayed(this, 1000);
+                    }
+                },
+                1000);
     }
 
     @Override
@@ -249,7 +262,8 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
                     mInterface.setRecordingStart(System.currentTimeMillis());
                 startCounter();
             } else {
-                mRecordDuration.setText(String.format("-%s", CameraUtil.getDurationString(mInterface.getLengthLimit())));
+                mRecordDuration.setText(
+                        String.format("-%s", CameraUtil.getDurationString(mInterface.getLengthLimit())));
             }
         }
     }
@@ -263,12 +277,14 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
 
     @NonNull
     protected final File getOutputMediaFile() {
-        return CameraUtil.makeTempFile(getActivity(), getArguments().getString(CameraIntentKey.SAVE_DIR), "VID_", ".mp4");
+        return CameraUtil.makeTempFile(
+                getActivity(), getArguments().getString(CameraIntentKey.SAVE_DIR), "VID_", ".mp4");
     }
 
     @NonNull
     protected final File getOutputPictureFile() {
-        return CameraUtil.makeTempFile(getActivity(), getArguments().getString(CameraIntentKey.SAVE_DIR), "IMG_", ".jpg");
+        return CameraUtil.makeTempFile(
+                getActivity(), getArguments().getString(CameraIntentKey.SAVE_DIR), "IMG_", ".jpg");
     }
 
     public abstract void openCamera();
@@ -298,8 +314,7 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
     }
 
     public final void startCounter() {
-        if (mPositionHandler == null)
-            mPositionHandler = new Handler();
+        if (mPositionHandler == null) mPositionHandler = new Handler();
         else mPositionHandler.removeCallbacks(mPositionUpdater);
         mPositionHandler.post(mPositionUpdater);
     }
@@ -384,8 +399,11 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
         final int id = view.getId();
         if (id == R.id.facing) {
             mInterface.toggleCameraPosition();
-            setImageRes(mButtonFacing, mInterface.getCurrentCameraPosition() == BaseCaptureActivity.CAMERA_POSITION_BACK ?
-                    mInterface.iconFrontCamera() : mInterface.iconRearCamera());
+            setImageRes(
+                    mButtonFacing,
+                    mInterface.getCurrentCameraPosition() == BaseCaptureActivity.CAMERA_POSITION_BACK
+                            ? mInterface.iconFrontCamera()
+                            : mInterface.iconRearCamera());
             closeCamera();
             openCamera();
             setupFlashMode();
@@ -394,19 +412,22 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
                 stopRecordingVideo(false);
                 mIsRecording = false;
             } else {
-                if (getArguments().getBoolean(CameraIntentKey.SHOW_PORTRAIT_WARNING, true) &&
-                        Degrees.isPortrait(getActivity())) {
+                if (getArguments().getBoolean(CameraIntentKey.SHOW_PORTRAIT_WARNING, true)
+                        && Degrees.isPortrait(getActivity())) {
                     new MaterialDialog.Builder(getActivity())
                             .title(R.string.mcam_portrait)
                             .content(R.string.mcam_portrait_warning)
                             .positiveText(R.string.mcam_yes)
                             .negativeText(android.R.string.cancel)
-                            .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
-                                    mIsRecording = startRecordingVideo();
-                                }
-                            })
+                            .onPositive(
+                                    new MaterialDialog.SingleButtonCallback() {
+                                        @Override
+                                        public void onClick(
+                                                @NonNull MaterialDialog materialDialog,
+                                                @NonNull DialogAction dialogAction) {
+                                            mIsRecording = startRecordingVideo();
+                                        }
+                                    })
                             .show();
                 } else {
                     mIsRecording = startRecordingVideo();
